@@ -1,4 +1,7 @@
 'use client';
+
+import BackAndForthButtons from "../ui/BackAndForthButtons";
+
 export default function Explanation1() {
     return (
          <div className="max-w-2xl mx-auto">
@@ -313,6 +316,7 @@ export default function Explanation1() {
             </div>
           </div>
         </div>
+        <BackAndForthButtons explanationNumber={1}/>
       </div>
     );
 }

@@ -3,7 +3,7 @@ import { createSlice,  } from '@reduxjs/toolkit';
 
 const explanationsSlice = createSlice({
   name: 'explanations',
-  initialState: { currentExplanation: 1 },
+  initialState: { currentExplanation: 2 },
   reducers: {
     setCurrentExplanation: (state, action) => {
       state.currentExplanation = action.payload;
