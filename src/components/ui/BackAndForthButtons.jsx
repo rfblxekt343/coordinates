@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { setCurrentExplanation } from '../../store/explanationsSlice';
 
 // Destructure the prop from the object
-export default function BackAndForthButtons({ explanationNumber }: { explanationNumber: number }) {
+export default function BackAndForthButtons({ explanationNumber }) {
     const dispatch = useDispatch();
     const router = useRouter();
 

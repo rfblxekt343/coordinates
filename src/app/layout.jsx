@@ -1,11 +1,8 @@
-
-import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import PageTransition from "../components/PageTransitions";
-import { Provider } from 'react-redux';
-import { store } from '../store/store';
 import ReduxProvider from "../components/ReduxProvider";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -16,14 +13,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "לומדת מדקו",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html>
-      <body>
+      <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ReduxProvider>
           <PageTransition>{children}</PageTransition>
         </ReduxProvider>
