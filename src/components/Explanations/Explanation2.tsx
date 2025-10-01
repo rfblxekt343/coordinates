@@ -25,7 +25,7 @@ export default function Explanation2() {
                     <p>לחץ על כל חלק במדקו כדי לקבל הסבר מפורט</p>
                 </div>
                 <div className="flex justify-center mb-6">
-                    <svg width="450" height="650" viewBox="0 0 450 650" className="max-w-full border border-purple-500/30 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 shadow-2xl">
+                    <svg width="450" viewBox="0 0 450 650" className="max-w-full border border-purple-500/30 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 shadow-2xl">
                         {/* Background - Light military style */}
                         <defs>
                             <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -161,7 +161,7 @@ export default function Explanation2() {
                             ))}
 
                             {/* Axis label */}
-                            <text x="30" y="190" textAnchor="middle" fill="#dc2626" fontSize="8" fontWeight="bold" direction="ltr">
+                            <text x="40" y="190" textAnchor="middle" fill="#dc2626" fontSize="8" fontWeight="bold" direction="ltr">
                                 20000 Y
                             </text>
                             <text x="230" y="415" textAnchor="middle" fill="#dc2626" fontSize="8" fontWeight="bold" direction="ltr">
@@ -182,7 +182,7 @@ export default function Explanation2() {
 
 
                         {/* 1 km Scale (Bottom Left) */}
-                        <g >
+                        <g className="cursor-pointer" onClick={() => setActiveSection('kmScale')}>
                             <rect x="25" y="200" width="15" height="300" fill="rgba(239,68,68,0.1)" stroke="#ef4444" strokeWidth="2" />
                             {/* Major tick marks and numbers (0-9, hiding 10) */}
                             {Array.from({ length: 11 }, (_, i) => (
@@ -243,7 +243,7 @@ export default function Explanation2() {
                         </g>
 
                         {/* 8 cm ruler right */}
-                        <g>
+                        <g className="cursor-pointer" onClick={() => setActiveSection('decimalScale')}>
                             <rect x="420" y="200" width="15" height="270" fill="rgba(239,68,68,0.1)" stroke="#FF8C00" strokeWidth="2" />
 
                             {/* Major tick marks and numbers (0-8) */}
@@ -275,7 +275,7 @@ export default function Explanation2() {
 
 
                         {/* Main Compass Circle */}
-                        <svg width="90%" height="90%" viewBox="-40 -30 500 500" xmlns="http://www.w3.org/2000/svg" >
+                        <svg width="90%" height="90%" viewBox="-40 -30 500 500" xmlns="http://www.w3.org/2000/svg"className="cursor-pointer" onClick={() => setActiveSection('compass')} >
                             {/* Define reusable elements and styles */}
                             <defs>
                                 {/* Curved paths for text */}

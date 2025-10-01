@@ -14,6 +14,9 @@ export default function BackAndForthButtons({ explanationNumber }: { explanation
             dispatch(setCurrentExplanation(2));
         }else if (explanationNumber === 2) {
             dispatch(setCurrentExplanation(3));
+        
+        }else if (explanationNumber === 3) {
+            dispatch(setCurrentExplanation(3));
         }
     };
 
@@ -23,6 +26,9 @@ export default function BackAndForthButtons({ explanationNumber }: { explanation
             router.push('/');
         }else if (explanationNumber === 2) {
            dispatch(setCurrentExplanation(1));
+        
+        }else if (explanationNumber === 3) {
+           dispatch(setCurrentExplanation(2));
         }
     };
 
