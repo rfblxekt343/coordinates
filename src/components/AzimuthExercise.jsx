@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import { useState, useRef, useEffect } from 'react';
 
 export default function AzimuthExercise() {
@@ -52,17 +52,20 @@ export default function AzimuthExercise() {
   
   useEffect(() => {
     const handleMove = (e) => {
+      if (isDraggingMadko || isDraggingThread) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      
       const clientX = e.clientX || (e.touches && e.touches[0].clientX);
       const clientY = e.clientY || (e.touches && e.touches[0].clientY);
       
       if (!clientX || !clientY) return;
       
       if (isDraggingMadko) {
-        e.preventDefault(); // Prevent scrolling
         const coords = getSvgCoordinates(clientX, clientY);
         setMadkoCenter({ x: coords.x, y: coords.y });
       } else if (isDraggingThread) {
-        e.preventDefault(); // Prevent scrolling
         const coords = getSvgCoordinates(clientX, clientY);
         const dx = coords.x - madkoCenter.x;
         const dy = madkoCenter.y - coords.y;
@@ -72,17 +75,31 @@ export default function AzimuthExercise() {
       }
     };
     
-    const handleEnd = () => {
+    const handleEnd = (e) => {
+      if (isDraggingMadko || isDraggingThread) {
+        e.preventDefault();
+      }
       setIsDraggingMadko(false);
       setIsDraggingThread(false);
     };
     
     if (isDraggingMadko || isDraggingThread) {
+      // Prevent body scrolling while dragging
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      
       window.addEventListener('mousemove', handleMove);
       window.addEventListener('mouseup', handleEnd);
       window.addEventListener('touchmove', handleMove, { passive: false });
-      window.addEventListener('touchend', handleEnd);
+      window.addEventListener('touchend', handleEnd, { passive: false });
+      
       return () => {
+        // Restore body scrolling
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+        
         window.removeEventListener('mousemove', handleMove);
         window.removeEventListener('mouseup', handleEnd);
         window.removeEventListener('touchmove', handleMove);
@@ -108,7 +125,7 @@ export default function AzimuthExercise() {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4" style={{ touchAction: 'pan-y pinch-zoom' }}>
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
           תרגיל מדידת אזימוט
@@ -200,6 +217,7 @@ export default function AzimuthExercise() {
               ref={svgRef}
               viewBox="0 0 600 500"
               className="w-full border-2 border-purple-500/30 rounded-lg bg-gradient-to-br from-green-900/20 to-yellow-900/20"
+              style={{ touchAction: 'none' }}
             >
               {/* Grid background */}
               <defs>
@@ -241,10 +259,10 @@ export default function AzimuthExercise() {
                 {Array.from({ length: 36 }, (_, i) => {
                   const angle = i * 10;
                   const rad = (angle - 90) * Math.PI / 180;
-                  const x1 = Math.cos(rad) * 70;
-                  const y1 = Math.sin(rad) * 70;
-                  const x2 = Math.cos(rad) * 75;
-                  const y2 = Math.sin(rad) * 75;
+                  const x1 = Math.round(Math.cos(rad) * 70 * 1000) / 1000;
+                  const y1 = Math.round(Math.sin(rad) * 70 * 1000) / 1000;
+                  const x2 = Math.round(Math.cos(rad) * 75 * 1000) / 1000;
+                  const y2 = Math.round(Math.sin(rad) * 75 * 1000) / 1000;
                   return (
                     <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#000" strokeWidth="1" />
                   );
@@ -253,8 +271,8 @@ export default function AzimuthExercise() {
                 {/* Degree labels */}
                 {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((angle) => {
                   const rad = (angle - 90) * Math.PI / 180;
-                  const x = Math.cos(rad) * 60;
-                  const y = Math.sin(rad) * 60;
+                  const x = Math.round(Math.cos(rad) * 60 * 1000) / 1000;
+                  const y = Math.round(Math.sin(rad) * 60 * 1000) / 1000;
                   return (
                     <text key={angle} x={x} y={y} fill="#000" fontSize="10" textAnchor="middle" dominantBaseline="middle">
                       {angle}°
@@ -273,13 +291,13 @@ export default function AzimuthExercise() {
                   onTouchStart={handleThreadStart}
                 >
                   {/* Visible thread line */}
-                  <line x1="0" y1="0" x2="0" y2="-150" stroke="#dc2626" strokeWidth="3" />
+                  <line x1="0" y1="0" x2="0" y2="-250" stroke="#dc2626" strokeWidth="3" />
                   {/* Invisible wider touch target */}
-                  <line x1="0" y1="0" x2="0" y2="-150" stroke="transparent" strokeWidth="20" style={{ pointerEvents: 'all' }} />
+                  <line x1="0" y1="0" x2="0" y2="-250" stroke="transparent" strokeWidth="20" style={{ pointerEvents: 'all' }} />
                   {/* Visible circle at end */}
-                  <circle cy="-150" r="8" fill="#dc2626" stroke="#fff" strokeWidth="2" />
+                  <circle cy="-250" r="8" fill="#dc2626" stroke="#fff" strokeWidth="2" />
                   {/* Larger invisible touch target circle */}
-                  <circle cy="-150" r="20" fill="transparent" style={{ pointerEvents: 'all' }} />
+                  <circle cy="-250" r="20" fill="transparent" style={{ pointerEvents: 'all' }} />
                 </g>
                 
                 {/* Cardinal directions */}
