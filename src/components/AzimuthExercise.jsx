@@ -58,9 +58,11 @@ export default function AzimuthExercise() {
       if (!clientX || !clientY) return;
       
       if (isDraggingMadko) {
+        e.preventDefault(); // Prevent scrolling
         const coords = getSvgCoordinates(clientX, clientY);
         setMadkoCenter({ x: coords.x, y: coords.y });
       } else if (isDraggingThread) {
+        e.preventDefault(); // Prevent scrolling
         const coords = getSvgCoordinates(clientX, clientY);
         const dx = coords.x - madkoCenter.x;
         const dy = madkoCenter.y - coords.y;
@@ -78,7 +80,7 @@ export default function AzimuthExercise() {
     if (isDraggingMadko || isDraggingThread) {
       window.addEventListener('mousemove', handleMove);
       window.addEventListener('mouseup', handleEnd);
-      window.addEventListener('touchmove', handleMove);
+      window.addEventListener('touchmove', handleMove, { passive: false });
       window.addEventListener('touchend', handleEnd);
       return () => {
         window.removeEventListener('mousemove', handleMove);
@@ -270,8 +272,14 @@ export default function AzimuthExercise() {
                   onMouseDown={handleThreadStart}
                   onTouchStart={handleThreadStart}
                 >
-                  <line x1="0" y1="0" x2="0" y2="-150" stroke="#dc2626" strokeWidth="2" />
-                  <circle cy="-150" r="5" fill="#dc2626" />
+                  {/* Visible thread line */}
+                  <line x1="0" y1="0" x2="0" y2="-150" stroke="#dc2626" strokeWidth="3" />
+                  {/* Invisible wider touch target */}
+                  <line x1="0" y1="0" x2="0" y2="-150" stroke="transparent" strokeWidth="20" style={{ pointerEvents: 'all' }} />
+                  {/* Visible circle at end */}
+                  <circle cy="-150" r="8" fill="#dc2626" stroke="#fff" strokeWidth="2" />
+                  {/* Larger invisible touch target circle */}
+                  <circle cy="-150" r="20" fill="transparent" style={{ pointerEvents: 'all' }} />
                 </g>
                 
                 {/* Cardinal directions */}
