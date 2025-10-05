@@ -29,6 +29,8 @@ export default function BackAndForthButtons({ explanationNumber }) {
         
         }else if (explanationNumber === 3) {
            dispatch(setCurrentExplanation(2));
+        }else if (explanationNumber === 4) {
+           dispatch(setCurrentExplanation(3));
         }
     };
 

@@ -275,7 +275,7 @@ export default function Explanation2() {
 
 
                         {/* Main Compass Circle */}
-                        <svg width="90%" height="90%" viewBox="-40 -30 500 500" xmlns="http://www.w3.org/2000/svg"className="cursor-pointer" onClick={() => setActiveSection('compass')} >
+                        <svg width="90%" height="90%" viewBox="-40 -30 500 500" xmlns="http://www.w3.org/2000/svg" className="cursor-pointer" onClick={() => setActiveSection('compass')} >
                             {/* Define reusable elements and styles */}
                             <defs>
                                 {/* Curved paths for text */}
@@ -423,7 +423,7 @@ export default function Explanation2() {
 
                                 {/* Cardinal direction letters in Hebrew */}
                                 <g id="cardinal-letters" fill="#0000FF">
-                                    <text  x="0" y="-90" className="cardinal-letter" >צפון</text> {/* North */}
+                                    <text x="0" y="-90" className="cardinal-letter" >צפון</text> {/* North */}
                                     <text x="105" y="20" className="cardinal-letter" transform={`rotate(90, 105, 0)`}>מזרח</text> {/* East */}
                                     <text x="0" y="90" className="cardinal-letter" >דרום</text> {/* South */}
                                     <text x="-105" y="20" className="cardinal-letter" transform={`rotate(270, -105, 0)`}>מערב</text> {/* West */}
@@ -455,7 +455,7 @@ export default function Explanation2() {
                         {activeSection === 'grid1' && (
                             <div>
                                 <h3 className="text-lg font-bold text-cyan-400 mb-2">רשת 50,000</h3>
-                                <p className="text-gray-200">רשת גדולה למדידות כלליות ואיתור מיקומים על המפה בקנה מידה רחב.</p>
+                                <p className="text-gray-200">סרגל למדידת עשרות המטרים במשבצת (1:50,000)</p>
                             </div>
                         )}
                         {activeSection === 'grid2' && (
@@ -485,6 +485,7 @@ export default function Explanation2() {
                         {activeSection === 'compass' && (
                             <div>
                                 <h3 className="text-lg font-bold text-red-400 mb-2">עיגול האזימוטים</h3>
+                                <p className="text-gray-200">שלושת המעגלים: אלפיות, אזימוט ואזימוט חוזר</p>
                                 <p className="text-gray-200">מאפשר למצוא זוויות ואזימוטים בין נקודות על המפה. יעזור לנו בבניית הציר וכתיבת סיפור דרך.</p>
                                 <div className="mt-2 text-sm text-red-300">
                                     <strong>מדידת כיוונים:</strong> 0°-360° מצפון בכיוון השעון. כולל עיגולי מרחק למדידה מדויקת.
@@ -541,53 +542,106 @@ export default function Explanation2() {
 
             {/* Usage Instructions */}
             <div className="bg-black/30 backdrop-blur-sm border border-purple-500/30 p-4 sm:p-6 rounded-2xl shadow-lg">
-                <h2 className="text-xl sm:text-2xl font-bold mb-4 text-center text-pink-400">איך משתמשים במדקו?</h2>
+                <h2 className="text-xl sm:text-2xl font-bold mb-4 text-center text-pink-400">דגשים</h2>
+                <ul className="list-disc list-inside text-gray-300 space-y-2">
+                    <li>במדקו - שנת קטנה מציינת 50 מ', שנת בינונית מרחק של 100 מ' ושנת גדולה מרחק של 500 מ'</li>
+                    <li>סימון הנקדוה על המפה "תופס" שטח של עשרות מטרים ולכן הנ.צ תהייה בעשרות מטרים ולא באחדות מטרים. בנוסף בחי"ר אין צורך בדיוק של אחדות מטרים.</li>
+                </ul>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-slate-800/50 backdrop-blur-sm border border-cyan-500/30 p-4 rounded-xl">
-                        <h3 className="text-lg font-bold mb-3 text-cyan-400">מדידת מרחקים</h3>
-                        <ol className="text-gray-300 text-sm space-y-2">
-                            <li className="flex gap-2">
-                                <span className="bg-cyan-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center font-bold">1</span>
-                                הנח את תחילת הסרגל על נקודת המוצא
-                            </li>
-                            <li className="flex gap-2">
-                                <span className="bg-cyan-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center font-bold">2</span>
-                                מתח את הסרגל לכיוון נקודת היעד
-                            </li>
-                            <li className="flex gap-2">
-                                <span className="bg-cyan-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center font-bold">3</span>
-                                קרא את המרחק בק"מ
-                            </li>
-                        </ol>
-                    </div>
+ <div className="mt-6 p-4 bg-gradient-to-r from-purple-900/30 to-pink-900/30 border border-purple-500/30 rounded-lg">
+      <h4 className="font-bold text-purple-400 mb-2 text-center">מדידת כיוונים</h4>
+      <div className="w-full max-w-md mx-auto">
+        <svg viewBox="-4 -5 210 210" className="w-full h-auto" >
+          {/* Center circle */}
+          <circle cx="102.5" cy="105" r="80" fill="none" stroke="#94a3b8" strokeWidth="1" opacity="0.3" />
 
-                    <div className="bg-slate-800/50 backdrop-blur-sm border border-red-500/30 p-4 rounded-xl">
-                        <h3 className="text-lg font-bold mb-3 text-red-400">מדידת כיוונים</h3>
-                        <ol className="text-gray-300 text-sm space-y-2">
-                            <li className="flex gap-2">
-                                <span className="bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center font-bold">1</span>
-                                מרכז את העיגול על נקודת המוצא
-                            </li>
-                            <li className="flex gap-2">
-                                <span className="bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center font-bold">2</span>
-                                יישר את הצפון עם צפון המפה
-                            </li>
-                            <li className="flex gap-2">
-                                <span className="bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center font-bold">3</span>
-                                קרא את האזימוט לכיוון היעד
-                            </li>
-                        </ol>
-                    </div>
-                </div>
+          {/* Compass points */}
+          {[
+            { angle: 0, primary: 'צפון', secondary: '', degree: '0 מעלות', color: '#000' },
+            { angle: 22.5, primary: 'צפ׳-מז׳', secondary: '', color: '#ec4899' },
+            { angle: 45, primary: 'צפ׳-מז׳', secondary: 'צפ׳-מז׳-', color: '#ec4899' },
+            { angle: 67.5, primary: 'מז׳', secondary: 'צפ׳-מז׳-', color: '#ec4899' },
+            { angle: 90, primary: 'מזרח', secondary: '', degree: '90 מעלות', color: '#000' },
+            { angle: 112.5, primary: 'מז׳', secondary: 'מז׳-דר׳-', color: '#ec4899' },
+            { angle: 135, primary: 'מז׳-דר׳', secondary: 'מז׳-דר׳-', color: '#ec4899' },
+            { angle: 157.5, primary: 'דר׳', secondary: 'מז׳-דר׳-', color: '#ec4899' },
+            { angle: 180, primary: 'דרום', secondary: '', degree: '180 מעלות', color: '#000' },
+            { angle: 202.5, primary: 'דר׳', secondary: 'דר׳-מע׳-', color: '#ec4899' },
+            { angle: 225, primary: 'דר׳-מע׳', secondary: 'דר׳-מע׳-', color: '#ec4899' },
+            { angle: 247.5, primary: 'מע׳', secondary: 'דר׳-מע׳-', color: '#ec4899' },
+            { angle: 270, primary: 'מערב', secondary: '', degree: '270 מעלות', color: '#000' },
+            { angle: 292.5, primary: 'מע׳', secondary: 'מע׳-צפ׳-', color: '#ec4899' },
+            { angle: 315, primary: 'מע׳-צפ׳', secondary: 'מע׳-צפ׳-', color: '#ec4899' },
+            { angle: 337.5, primary: 'צפ׳', secondary: 'מע׳-צפ׳-', color: '#ec4899' },
+          ].map((dir, i) => {
+            const rad = (dir.angle - 90) * Math.PI / 180;
+            const x = 100 + Math.cos(rad) * 70;
+            const y = 100 + Math.sin(rad) * 70;
+            const textX = 100 + Math.cos(rad) * 92;
+            const textY = 100 + Math.sin(rad) * 92;
 
-                <div className="mt-6 p-4 bg-gradient-to-r from-purple-900/30 to-pink-900/30 border border-purple-500/30 rounded-lg">
-                    <h4 className="font-bold text-purple-400 mb-2 text-center">💡 טיפ חשוב</h4>
-                    <p className="text-center text-gray-300 text-sm">
-                        השילוב של כל שלושת הרכיבים מאפשר תכנון מדויק של מסלולים ואיתור נקודות ציון בדיוק של עשרות מטרים!
-                    </p>
-                </div>
+            return (
+              <g key={i}>
+                {/* Direction line */}
+                <line
+                  x1="100"
+                  y1="100"
+                  x2={x}
+                  y2={y}
+                  stroke={dir.color}
+                  strokeWidth={dir.degree ? "3" : "1.5"}
+                  opacity={dir.degree ? "1" : "0.6"}
+                />
+
+                {/* Direction label */}
+                <text
+                  x={textX}
+                  y={textY}
+                  fill={dir.color === '#000' ? '#60a5fa' : '#ec4899'}
+                  fontSize={dir.degree ? "8" : "6"}
+                  fontWeight={dir.degree ? "bold" : "normal"}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                >
+                  {dir.primary}
+                </text>
+
+                {dir.secondary && (
+                  <text
+                    x={textX}
+                    y={textY + 6}
+                    fill="#ec4899"
+                    fontSize="5"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                  >
+                    {dir.secondary}
+                  </text>
+                )}
+
+                {dir.degree && (
+                  <text
+                    x={textX}
+                    y={textY + 10}
+                    fill="#94a3b8"
+                    fontSize="5"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                  >
+                    {dir.degree}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+
+          {/* Center point */}
+          <circle cx="100" cy="100" r="4" fill="#60a5fa" />
+        </svg>
+      </div>
+    </div>
             </div>
+
             <BackAndForthButtons explanationNumber={2} />
         </div>
     );

@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import Explanation1 from '@/src/components/Explanations/Explanation1';
 import Explanation2 from '@/src/components/Explanations/Explanation2';
 import Explanation3 from '@/src/components/Explanations/Explanation3';
+import Explanation4 from '@/src/components/Explanations/Explanation4';
 export default function ExplanationPage() {
   const currentExplanation = useSelector((state) => state.explanations.currentExplanation);
   console.log('Current Explanation from Redux:', currentExplanation);
@@ -14,6 +15,7 @@ export default function ExplanationPage() {
       {currentExplanation === 1 && <Explanation1 />}
       {currentExplanation === 2 && <Explanation2 />}
       {currentExplanation === 3 && <Explanation3 />}
+      {currentExplanation === 4 && <Explanation4 />}
     </div>
   );
 }
