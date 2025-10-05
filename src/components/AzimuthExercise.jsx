@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import { useState, useRef, useEffect } from 'react';
 
 export default function AzimuthExercise() {
@@ -28,35 +28,40 @@ export default function AzimuthExercise() {
   
   const svgRef = useRef(null);
   
-  // Get mouse position relative to SVG
-  const getSvgCoordinates = (e) => {
+  // Get position relative to SVG (works for both mouse and touch)
+  const getSvgCoordinates = (clientX, clientY) => {
     const svg = svgRef.current;
     const pt = svg.createSVGPoint();
-    pt.x = e.clientX;
-    pt.y = e.clientY;
+    pt.x = clientX;
+    pt.y = clientY;
     return pt.matrixTransform(svg.getScreenCTM().inverse());
   };
   
-  // Handle madko drag
-  const handleMadkoMouseDown = (e) => {
+  // Handle madko drag start
+  const handleMadkoStart = (e) => {
     e.preventDefault();
     setIsDraggingMadko(true);
   };
   
-  // Handle thread drag
-  const handleThreadMouseDown = (e) => {
+  // Handle thread drag start
+  const handleThreadStart = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDraggingThread(true);
   };
   
   useEffect(() => {
-    const handleMouseMove = (e) => {
+    const handleMove = (e) => {
+      const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+      const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+      
+      if (!clientX || !clientY) return;
+      
       if (isDraggingMadko) {
-        const coords = getSvgCoordinates(e);
+        const coords = getSvgCoordinates(clientX, clientY);
         setMadkoCenter({ x: coords.x, y: coords.y });
       } else if (isDraggingThread) {
-        const coords = getSvgCoordinates(e);
+        const coords = getSvgCoordinates(clientX, clientY);
         const dx = coords.x - madkoCenter.x;
         const dy = madkoCenter.y - coords.y;
         let angle = Math.atan2(dx, dy) * (180 / Math.PI);
@@ -65,17 +70,21 @@ export default function AzimuthExercise() {
       }
     };
     
-    const handleMouseUp = () => {
+    const handleEnd = () => {
       setIsDraggingMadko(false);
       setIsDraggingThread(false);
     };
     
     if (isDraggingMadko || isDraggingThread) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener('mousemove', handleMove);
+      window.addEventListener('mouseup', handleEnd);
+      window.addEventListener('touchmove', handleMove);
+      window.addEventListener('touchend', handleEnd);
       return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
+        window.removeEventListener('mousemove', handleMove);
+        window.removeEventListener('mouseup', handleEnd);
+        window.removeEventListener('touchmove', handleMove);
+        window.removeEventListener('touchend', handleEnd);
       };
     }
   }, [isDraggingMadko, isDraggingThread, madkoCenter]);
@@ -219,8 +228,9 @@ export default function AzimuthExercise() {
               {/* Madko */}
               <g
                 transform={`translate(${madkoCenter.x}, ${madkoCenter.y})`}
-                style={{ cursor: isDraggingMadko ? 'grabbing' : 'grab' }}
-                onMouseDown={handleMadkoMouseDown}
+                style={{ cursor: isDraggingMadko ? 'grabbing' : 'grab', touchAction: 'none' }}
+                onMouseDown={handleMadkoStart}
+                onTouchStart={handleMadkoStart}
               >
                 {/* Outer circle */}
                 <circle r="80" fill="rgba(255,255,255,0.9)" stroke="#333" strokeWidth="2" />
@@ -256,8 +266,9 @@ export default function AzimuthExercise() {
                 {/* Thread */}
                 <g
                   transform={`rotate(${threadAngle})`}
-                  style={{ cursor: isDraggingThread ? 'grabbing' : 'grab' }}
-                  onMouseDown={handleThreadMouseDown}
+                  style={{ cursor: isDraggingThread ? 'grabbing' : 'grab', touchAction: 'none' }}
+                  onMouseDown={handleThreadStart}
+                  onTouchStart={handleThreadStart}
                 >
                   <line x1="0" y1="0" x2="0" y2="-150" stroke="#dc2626" strokeWidth="2" />
                   <circle cy="-150" r="5" fill="#dc2626" />
