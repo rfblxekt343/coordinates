@@ -1,7 +1,9 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
-
+import { useDispatch } from 'react-redux';
+import { setCurrentExcersice } from '../store/excersiceSlice'; // adjust path as needed
 export default function AzimuthExercise() {
+  const dispatch = useDispatch();
   // Exercise configuration
   const [pointA] = useState({ x: 250, y: 350, label: 'A' });
   const [pointB] = useState({ x: 450, y: 200, label: 'B' });
@@ -18,7 +20,7 @@ export default function AzimuthExercise() {
   const correctAzimuth = calculateAzimuth(pointA, pointB);
   
   // Madko state
-  const [madkoCenter, setMadkoCenter] = useState({ x: 250, y: 350 });
+  const [madkoCenter, setMadkoCenter] = useState({ x: 150, y: 250 });
   const [threadAngle, setThreadAngle] = useState(0);
   const [isDraggingMadko, setIsDraggingMadko] = useState(false);
   const [isDraggingThread, setIsDraggingThread] = useState(false);
@@ -291,13 +293,13 @@ export default function AzimuthExercise() {
                   onTouchStart={handleThreadStart}
                 >
                   {/* Visible thread line */}
-                  <line x1="0" y1="0" x2="0" y2="-150" stroke="#dc2626" strokeWidth="3" />
+                  <line x1="0" y1="0" x2="0" y2="-260" stroke="#dc2626" strokeWidth="3" />
                   {/* Invisible wider touch target */}
-                  <line x1="0" y1="0" x2="0" y2="-150" stroke="transparent" strokeWidth="20" style={{ pointerEvents: 'all' }} />
+                  <line x1="0" y1="0" x2="0" y2="-260" stroke="transparent" strokeWidth="20" style={{ pointerEvents: 'all' }} />
                   {/* Visible circle at end */}
-                  <circle cy="-150" r="8" fill="#dc2626" stroke="#fff" strokeWidth="2" />
+                  <circle cy="-260" r="8" fill="#dc2626" stroke="#fff" strokeWidth="2" />
                   {/* Larger invisible touch target circle */}
-                  <circle cy="-150" r="20" fill="transparent" style={{ pointerEvents: 'all' }} />
+                  <circle cy="-260" r="20" fill="transparent" style={{ pointerEvents: 'all' }} />
                 </g>
                 
                 {/* Cardinal directions */}
@@ -322,6 +324,7 @@ export default function AzimuthExercise() {
           </div>
         </div>
       </div>
+      <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded" onClick={() => dispatch(setCurrentExcersice(2))}>עבור לתרגול הבא </button>
     </div>
   );
 }
