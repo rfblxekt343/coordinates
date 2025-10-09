@@ -1,6 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
-
+import Link from 'next/link';
+import { useState, useRef, useEffect, use } from 'react';
+import { useDispatch } from 'react-redux';
+import { setCurrentExcersice } from '../store/excersiceSlice'; 
 export default function CoordinateFindingExercise() {
+  const dispatch = useDispatch();
   // Generate random target coordinate
   const generateCoordinate = () => {
     const x = Math.floor(Math.random() * 3) + 651; // 651-653
@@ -16,10 +19,10 @@ export default function CoordinateFindingExercise() {
 
   const [targetCoord, setTargetCoord] = useState(generateCoordinate());
   const [userPoint, setUserPoint] = useState(null);
-  const [madkoPosition, setMadkoPosition] = useState({ x: 300, y: 300 });
+  const [gridPosition, setGridPosition] = useState({ x: 300, y: 300 });
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
-  const [showMadko, setShowMadko] = useState(false);
+  const [showGrid, setShowGrid] = useState(true);
   
   const svgRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -66,11 +69,11 @@ export default function CoordinateFindingExercise() {
     const coords = getSvgCoordinates(clientX, clientY);
     
     setUserPoint({ x: coords.x, y: coords.y });
-    setMadkoPosition({ x: coords.x, y: coords.y });
-    setShowMadko(true);
+    setGridPosition({ x: coords.x, y: coords.y });
+    setShowGrid(true);
   };
 
-  const handleMadkoStart = (e) => {
+  const handleGridStart = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
@@ -90,7 +93,7 @@ export default function CoordinateFindingExercise() {
       
       if (isDragging) {
         const coords = getSvgCoordinates(clientX, clientY);
-        setMadkoPosition({ x: coords.x, y: coords.y });
+        setGridPosition({ x: coords.x, y: coords.y });
         setUserPoint({ x: coords.x, y: coords.y });
       }
     };
@@ -143,10 +146,10 @@ export default function CoordinateFindingExercise() {
   const handleReset = () => {
     setTargetCoord(generateCoordinate());
     setUserPoint(null);
-    setMadkoPosition({ x: 300, y: 300 });
+    setGridPosition({ x: 300, y: 300 });
     setShowResult(false);
     setIsCorrect(false);
-    setShowMadko(false);
+    setShowGrid(true);
   };
 
   const targetPixel = coordToPixel(targetCoord);
@@ -165,7 +168,7 @@ export default function CoordinateFindingExercise() {
             <ol className="text-gray-200 space-y-2 text-sm" dir="rtl">
               <li className="flex gap-2">
                 <span className="bg-cyan-500 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">1</span>
-                <span>קרא את הנ.צ המוצג למעלה</span>
+                <span>קרא את הנ.צ המוצג למטה</span>
               </li>
               <li className="flex gap-2">
                 <span className="bg-purple-500 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">2</span>
@@ -173,11 +176,11 @@ export default function CoordinateFindingExercise() {
               </li>
               <li className="flex gap-2">
                 <span className="bg-pink-500 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">3</span>
-                <span>השתמש במדקו למצוא את המיקום המדויק בתוך הריבוע</span>
+                <span>השתמש ברשת 3,000 למצוא את המיקום המדויק בתוך הריבוע</span>
               </li>
               <li className="flex gap-2">
                 <span className="bg-emerald-500 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">4</span>
-                <span>לחץ על המפה או גרור את המדקו למיקום הנכון</span>
+                <span>לחץ על המפה או גרור את הרשת למיקום הנכון</span>
               </li>
             </ol>
             
@@ -294,41 +297,90 @@ export default function CoordinateFindingExercise() {
                 </>
               )}
               
-              {/* Madko overlay */}
-              {showMadko && !showResult && (
+              {/* 3000 Grid overlay */}
+              {showGrid && !showResult && (
                 <g
-                  transform={`translate(${madkoPosition.x}, ${madkoPosition.y})`}
+                  transform={`translate(${gridPosition.x - 50}, ${gridPosition.y - 50})`}
                   style={{ cursor: isDragging ? 'grabbing' : 'grab', touchAction: 'none' }}
-                  onMouseDown={handleMadkoStart}
-                  onTouchStart={handleMadkoStart}
+                  onMouseDown={handleGridStart}
+                  onTouchStart={handleGridStart}
                 >
-                  <circle r="60" fill="rgba(255,255,255,0.95)" stroke="#333" strokeWidth="2" />
+                  {/* Background rectangle */}
+                  <rect 
+                    x="0" 
+                    y="0" 
+                    width="100" 
+                    height="100" 
+                    fill="rgba(168,85,247,0.15)" 
+                    stroke="#a855f7" 
+                    strokeWidth="2"
+                  />
                   
-                  {/* Corner ruler marks */}
-                  <g transform="translate(-60, -60)">
-                    {/* Vertical ruler */}
-                    {Array.from({ length: 11 }, (_, i) => (
-                      <g key={`v${i}`}>
-                        <line x1="0" y1={i * 12} x2="8" y2={i * 12} stroke="#dc2626" strokeWidth="1" />
-                        {i > 0 && i < 10 && (
-                          <text x="12" y={i * 12 + 3} fontSize="6" fill="#dc2626">{10 - i}</text>
-                        )}
-                      </g>
-                    ))}
-                    
-                    {/* Horizontal ruler */}
-                    {Array.from({ length: 11 }, (_, i) => (
-                      <g key={`h${i}`}>
-                        <line x1={i * 12} y1="0" x2={i * 12} y2="8" stroke="#dc2626" strokeWidth="1" />
-                        {i > 0 && i < 10 && (
-                          <text x={i * 12 - 2} y="18" fontSize="6" fill="#dc2626">{i}</text>
-                        )}
-                      </g>
-                    ))}
-                  </g>
+                  {/* Vertical grid lines - 10 divisions */}
+                  {Array.from({ length: 11 }, (_, i) => (
+                    <line 
+                      key={`v${i}`} 
+                      x1={i * 10} 
+                      y1="0" 
+                      x2={i * 10} 
+                      y2="100" 
+                      stroke="#a855f7" 
+                      strokeWidth="0.8" 
+                      opacity="0.7" 
+                    />
+                  ))}
                   
-                  <circle r="3" fill="#333" />
-                  <text y="-70" fill="#666" fontSize="10" fontWeight="bold" textAnchor="middle">גרור למיקום</text>
+                  {/* Horizontal grid lines - 10 divisions */}
+                  {Array.from({ length: 11 }, (_, i) => (
+                    <line 
+                      key={`h${i}`} 
+                      x1="0" 
+                      y1={i * 10} 
+                      x2="100" 
+                      y2={i * 10} 
+                      stroke="#a855f7" 
+                      strokeWidth="0.8" 
+                      opacity="0.7" 
+                    />
+                  ))}
+                  
+                  {/* Bottom numbers: 0-9 */}
+                  {Array.from({ length: 10 }, (_, i) => (
+                    <text 
+                      key={`bottom${i}`} 
+                      x={i * 10 + 5} 
+                      y="115" 
+                      textAnchor="middle" 
+                      fill="#a855f7" 
+                      fontSize="8"
+                      fontWeight="bold"
+                    >
+                      {i}
+                    </text>
+                  ))}
+                  <text x="110" y="115" textAnchor="middle" fill="#a855f7" fontSize="7" fontWeight="bold">X</text>
+                  
+                  {/* Left side numbers: 0-9 (bottom to top) */}
+                  {Array.from({ length: 10 }, (_, i) => (
+                    <text 
+                      key={`left${i}`} 
+                      x="-8" 
+                      y={95 - i * 10} 
+                      textAnchor="middle" 
+                      fill="#a855f7" 
+                      fontSize="8"
+                      fontWeight="bold"
+                    >
+                      {i}
+                    </text>
+                  ))}
+                  <text x="-8" y="-5" textAnchor="middle" fill="#a855f7" fontSize="7" fontWeight="bold">Y</text>
+                  
+                  {/* Center point marker */}
+                  <circle cx="50" cy="50" r="3" fill="#a855f7" />
+                  
+                  {/* Drag instruction */}
+                  <text x="50" y="-10" fill="#a855f7" fontSize="10" fontWeight="bold" textAnchor="middle">גרור למיקום</text>
                 </g>
               )}
             </svg>
@@ -344,6 +396,10 @@ export default function CoordinateFindingExercise() {
           </div>
         </div>
       </div>
+    
+      <Link className="flex justify-center mt-8" href="/">
+            <button className="px-6 py-2 rounded-lg bg-gradient-to-r from-pink-400 to-purple-500 text-white font-bold shadow hover:from-pink-500 hover:to-purple-600 transition" onClick={()=>dispatch(setCurrentExcersice(1))}>עבור  למסך הבית </button>
+            </Link>
     </div>
   );
 }

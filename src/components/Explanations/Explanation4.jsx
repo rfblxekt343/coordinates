@@ -1,4 +1,5 @@
 'use client';
+import Link from "next/link";
 import { useState } from 'react';
 import BackAndForthButtons from '../ui/BackAndForthButtons';
 
@@ -309,8 +310,9 @@ export default function Explanation4() {
                     </div>
                 </div>
             </div>
-
-            <BackAndForthButtons explanationNumber={4} />
+            <Link href="/practice">
+            <BackAndForthButtons  />
+            </Link>
         </div>
     );
 }

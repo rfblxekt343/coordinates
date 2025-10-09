@@ -324,7 +324,10 @@ export default function AzimuthExercise() {
           </div>
         </div>
       </div>
-      <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded" onClick={() => dispatch(setCurrentExcersice(2))}>עבור לתרגול הבא </button>
+      <div className="flex justify-center mt-8">
+
+      <button className="px-6 py-2 rounded-lg bg-gradient-to-r from-pink-400 to-purple-500 text-white font-bold shadow hover:from-pink-500 hover:to-purple-600 transition" onClick={() => dispatch(setCurrentExcersice(2))}>עבור לתרגול הבא </button>
+      </div>
     </div>
   );
 }
