@@ -1,9 +1,8 @@
-import Link from 'next/link';
-import { useState, useRef, useEffect, use } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { setCurrentExcersice } from '../store/excersiceSlice'; 
+import { setCurrentExcersice } from '../store/excersiceSlice';
+import Link from 'next/link';
 export default function CoordinateFindingExercise() {
-  const dispatch = useDispatch();
   // Generate random target coordinate
   const generateCoordinate = () => {
     const x = Math.floor(Math.random() * 3) + 651; // 651-653
@@ -40,21 +39,9 @@ export default function CoordinateFindingExercise() {
     return { x: pixelX, y: pixelY };
   };
 
-  // Convert pixel to coordinate
-  const pixelToCoord = (pixel) => {
-    const gridX = Math.floor((pixel.x - 100) / 200);
-    const decimalX = Math.floor(((pixel.x - 100) % 200) / 200 * 10) * 100;
-    const x = (651 + gridX) * 1000 + decimalX;
-    
-    const gridY = Math.floor((500 - pixel.y) / 200);
-    const decimalY = Math.floor(((500 - pixel.y) % 200) / 200 * 10) * 100;
-    const y = (407 + gridY) * 1000 + decimalY;
-    
-    return { x, y };
-  };
-
   const getSvgCoordinates = (clientX, clientY) => {
     const svg = svgRef.current;
+    if (!svg) return { x: 0, y: 0 };
     const pt = svg.createSVGPoint();
     pt.x = clientX;
     pt.y = clientY;
@@ -62,15 +49,13 @@ export default function CoordinateFindingExercise() {
   };
 
   const handleMapClick = (e) => {
-    if (showResult) return;
+    if (showResult || isDragging) return;
     
     const clientX = e.clientX || (e.touches && e.touches[0].clientX);
     const clientY = e.clientY || (e.touches && e.touches[0].clientY);
     const coords = getSvgCoordinates(clientX, clientY);
     
     setUserPoint({ x: coords.x, y: coords.y });
-    setGridPosition({ x: coords.x, y: coords.y });
-    setShowGrid(true);
   };
 
   const handleGridStart = (e) => {
@@ -81,21 +66,17 @@ export default function CoordinateFindingExercise() {
 
   useEffect(() => {
     const handleMove = (e) => {
-      if (isDragging) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
+      if (!isDragging) return;
+
+      e.preventDefault();
       
       const clientX = e.clientX || (e.touches && e.touches[0].clientX);
       const clientY = e.clientY || (e.touches && e.touches[0].clientY);
       
       if (!clientX || !clientY) return;
       
-      if (isDragging) {
-        const coords = getSvgCoordinates(clientX, clientY);
-        setGridPosition({ x: coords.x, y: coords.y });
-        setUserPoint({ x: coords.x, y: coords.y });
-      }
+      const coords = getSvgCoordinates(clientX, clientY);
+      setGridPosition({ x: coords.x, y: coords.y });
     };
     
     const handleEnd = (e) => {
@@ -131,7 +112,6 @@ export default function CoordinateFindingExercise() {
   const handleSubmit = () => {
     if (!userPoint) return;
     
-    const userCoord = pixelToCoord(userPoint);
     const targetPixel = coordToPixel(targetCoord);
     
     const distance = Math.sqrt(
@@ -155,71 +135,71 @@ export default function CoordinateFindingExercise() {
   const targetPixel = coordToPixel(targetCoord);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-2 sm:p-4">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 text-center bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
           תרגיל מציאת נקודה לפי נ.צ
         </h1>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Instructions */}
-          <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 p-4 rounded-xl">
-            <h2 className="text-xl font-bold text-cyan-400 mb-3">הוראות</h2>
-            <ol className="text-gray-200 space-y-2 text-sm" dir="rtl">
+          <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 p-3 sm:p-4 rounded-xl">
+            <h2 className="text-lg sm:text-xl font-bold text-cyan-400 mb-2 sm:mb-3">הוראות</h2>
+            <ol className="text-gray-200 space-y-1.5 sm:space-y-2 text-xs sm:text-sm" dir="rtl">
               <li className="flex gap-2">
-                <span className="bg-cyan-500 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">1</span>
+                <span className="bg-cyan-500 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center flex-shrink-0 text-xs sm:text-sm">1</span>
                 <span>קרא את הנ.צ המוצג למטה</span>
               </li>
               <li className="flex gap-2">
-                <span className="bg-purple-500 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">2</span>
+                <span className="bg-purple-500 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center flex-shrink-0 text-xs sm:text-sm">2</span>
                 <span>מצא את הריבוע הנכון על המפה לפי 3 הספרות הראשונות</span>
               </li>
               <li className="flex gap-2">
-                <span className="bg-pink-500 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">3</span>
-                <span>השתמש ברשת 3,000 למצוא את המיקום המדויק בתוך הריבוע</span>
+                <span className="bg-pink-500 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center flex-shrink-0 text-xs sm:text-sm">3</span>
+                <span>גרור את רשת 3,000 לריבוע הנכון (הרשת מתאימה בדיוק לגודל הריבוע)</span>
               </li>
               <li className="flex gap-2">
-                <span className="bg-emerald-500 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">4</span>
-                <span>לחץ על המפה או גרור את הרשת למיקום הנכון</span>
+                <span className="bg-emerald-500 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center flex-shrink-0 text-xs sm:text-sm">4</span>
+                <span>לחץ על המיקום המדויק על המפה</span>
               </li>
             </ol>
             
-            <div className="mt-6 p-4 bg-purple-900/30 border border-purple-500/30 rounded-lg">
-              <h3 className="text-lg font-bold text-purple-400 mb-2 text-center">הנ.צ למציאה:</h3>
-              <p className="text-3xl font-bold text-center text-cyan-300 font-mono" dir="ltr">
+            <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-purple-900/30 border border-purple-500/30 rounded-lg">
+              <h3 className="text-base sm:text-lg font-bold text-purple-400 mb-1 sm:mb-2 text-center">הנ.צ למציאה:</h3>
+              <p className="text-2xl sm:text-3xl font-bold text-center text-cyan-300 font-mono" dir="ltr">
                 {targetCoord.display}
               </p>
             </div>
 
-            <div className="mt-4 flex gap-2">
+            <div className="mt-3 sm:mt-4 flex gap-2">
               <button
                 onClick={handleSubmit}
                 disabled={!userPoint || showResult}
-                className="flex-1 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold py-2 px-4 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold py-2 px-3 sm:px-4 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-base"
               >
                 בדוק תשובה
               </button>
               <button
                 onClick={handleReset}
-                className="flex-1 bg-slate-700 text-white font-bold py-2 px-4 rounded-lg hover:bg-slate-600"
+                className="flex-1 bg-slate-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg hover:bg-slate-600 text-xs sm:text-base"
               >
                 נ.צ חדש
               </button>
             </div>
             
             {showResult && (
-              <div className={`mt-4 p-4 rounded-lg border ${
+              <div className={`mt-3 sm:mt-4 p-3 sm:p-4 rounded-lg border ${
                 isCorrect 
                   ? 'bg-green-900/30 border-green-500/30' 
                   : 'bg-red-900/30 border-red-500/30'
               }`}>
-                <p className={`font-bold text-lg ${isCorrect ? 'text-green-400' : 'text-red-400'}`} dir="rtl">
+                <p className={`font-bold text-base sm:text-lg ${isCorrect ? 'text-green-400' : 'text-red-400'}`} dir="rtl">
                   {isCorrect ? '✓ מצוין! מצאת את הנקודה הנכונה!' : '✗ לא מדויק מספיק'}
                 </p>
                 {!isCorrect && (
-                  <div className="mt-3" dir="rtl">
-                    <p className="text-yellow-300 text-sm mb-2">הנקודה הנכונה מסומנת בירוק</p>
-                    <p className="text-gray-300 text-sm">
+                  <div className="mt-2 sm:mt-3" dir="rtl">
+                    <p className="text-yellow-300 text-xs sm:text-sm mb-1 sm:mb-2">הנקודה הנכונה מסומנת בירוק</p>
+                    <p className="text-gray-300 text-xs sm:text-sm">
                       טיפ: שים לב ל-3 הספרות האחרונות - הן מציינות את המיקום בתוך הריבוע
                     </p>
                   </div>
@@ -229,16 +209,16 @@ export default function CoordinateFindingExercise() {
           </div>
           
           {/* Map with Grid */}
-          <div className="lg:col-span-2 bg-black/40 backdrop-blur-sm border border-purple-500/30 p-4 rounded-xl">
-            <h2 className="text-xl font-bold text-purple-400 mb-3 text-center">מפה טופוגרפית 1:50,000</h2>
+          <div className="lg:col-span-2 bg-black/40 backdrop-blur-sm border border-purple-500/30 p-3 sm:p-4 rounded-xl">
+            <h2 className="text-lg sm:text-xl font-bold text-purple-400 mb-2 sm:mb-3 text-center">מפה טופוגרפית 1:50,000</h2>
             
             <svg
               ref={svgRef}
               viewBox="0 0 700 600"
-              className="w-full border-2 border-purple-500/30 rounded-lg bg-gradient-to-br from-green-900/20 to-yellow-900/20 cursor-crosshair"
+              className="w-full h-auto border-2 border-purple-500/30 rounded-lg bg-gradient-to-br from-green-900/20 to-yellow-900/20 cursor-crosshair touch-none"
               onClick={handleMapClick}
               onTouchStart={handleMapClick}
-              style={{ touchAction: 'none' }}
+              style={{ touchAction: 'none', maxHeight: '70vh' }}
             >
               {/* Grid - 1km squares */}
               <defs>
@@ -254,19 +234,19 @@ export default function CoordinateFindingExercise() {
               <rect x="100" y="100" width="600" height="400" fill="url(#grid)" />
               
               {/* Grid labels */}
-              <text x="200" y="90" fill="#67e8f9" fontSize="16" fontWeight="bold" textAnchor="middle">651</text>
-              <text x="400" y="90" fill="#67e8f9" fontSize="16" fontWeight="bold" textAnchor="middle">652</text>
-              <text x="600" y="90" fill="#67e8f9" fontSize="16" fontWeight="bold" textAnchor="middle">653</text>
+              <text x="200" y="90" fill="#67e8f9" fontSize="14" fontWeight="bold" textAnchor="middle">651</text>
+              <text x="400" y="90" fill="#67e8f9" fontSize="14" fontWeight="bold" textAnchor="middle">652</text>
+              <text x="600" y="90" fill="#67e8f9" fontSize="14" fontWeight="bold" textAnchor="middle">653</text>
               
-              <text x="80" y="305" fill="#c084fc" fontSize="16" fontWeight="bold" textAnchor="middle">408</text>
-              <text x="80" y="505" fill="#c084fc" fontSize="16" fontWeight="bold" textAnchor="middle">407</text>
+              <text x="80" y="205" fill="#c084fc" fontSize="14" fontWeight="bold" textAnchor="middle">408</text>
+              <text x="80" y="405" fill="#c084fc" fontSize="14" fontWeight="bold" textAnchor="middle">407</text>
               
               {/* User's marked point */}
               {userPoint && (
                 <circle 
                   cx={userPoint.x} 
                   cy={userPoint.y} 
-                  r="8" 
+                  r="6" 
                   fill="#3b82f6" 
                   stroke="#1e40af" 
                   strokeWidth="2"
@@ -275,7 +255,7 @@ export default function CoordinateFindingExercise() {
               )}
               
               {/* Show correct answer after submission */}
-              {showResult && !isCorrect && (
+              {showResult && !isCorrect && userPoint && (
                 <>
                   <circle 
                     cx={targetPixel.x} 
@@ -297,90 +277,96 @@ export default function CoordinateFindingExercise() {
                 </>
               )}
               
-              {/* 3000 Grid overlay */}
+              {/* 3000 Grid overlay - FREE DRAGGING */}
               {showGrid && !showResult && (
                 <g
-                  transform={`translate(${gridPosition.x - 50}, ${gridPosition.y - 50})`}
+                  transform={`translate(${gridPosition.x - 100}, ${gridPosition.y - 100})`}
                   style={{ cursor: isDragging ? 'grabbing' : 'grab', touchAction: 'none' }}
                   onMouseDown={handleGridStart}
                   onTouchStart={handleGridStart}
                 >
-                  {/* Background rectangle */}
+                  {/* Background rectangle - 200x200 to match 1km square */}
                   <rect 
                     x="0" 
                     y="0" 
-                    width="100" 
-                    height="100" 
-                    fill="rgba(168,85,247,0.15)" 
+                    width="200" 
+                    height="200" 
+                    fill="rgba(168,85,247,0.12)" 
                     stroke="#a855f7" 
-                    strokeWidth="2"
+                    strokeWidth="3"
                   />
                   
-                  {/* Vertical grid lines - 10 divisions */}
+                  {/* Vertical grid lines - 10 divisions (each 20px = 100m) */}
                   {Array.from({ length: 11 }, (_, i) => (
                     <line 
                       key={`v${i}`} 
-                      x1={i * 10} 
+                      x1={i * 20} 
                       y1="0" 
-                      x2={i * 10} 
-                      y2="100" 
+                      x2={i * 20} 
+                      y2="200" 
                       stroke="#a855f7" 
-                      strokeWidth="0.8" 
+                      strokeWidth="1" 
                       opacity="0.7" 
                     />
                   ))}
                   
-                  {/* Horizontal grid lines - 10 divisions */}
+                  {/* Horizontal grid lines - 10 divisions (each 20px = 100m) */}
                   {Array.from({ length: 11 }, (_, i) => (
                     <line 
                       key={`h${i}`} 
                       x1="0" 
-                      y1={i * 10} 
-                      x2="100" 
-                      y2={i * 10} 
+                      y1={i * 20} 
+                      x2="200" 
+                      y2={i * 20} 
                       stroke="#a855f7" 
-                      strokeWidth="0.8" 
+                      strokeWidth="1" 
                       opacity="0.7" 
                     />
                   ))}
                   
-                  {/* Bottom numbers: 0-9 */}
+                  {/* Bottom numbers: 0-9 (X axis) */}
                   {Array.from({ length: 10 }, (_, i) => (
                     <text 
                       key={`bottom${i}`} 
-                      x={i * 10 + 5} 
-                      y="115" 
+                      x={i * 20 + 10} 
+                      y="215" 
                       textAnchor="middle" 
                       fill="#a855f7" 
-                      fontSize="8"
+                      fontSize="10"
                       fontWeight="bold"
                     >
                       {i}
                     </text>
                   ))}
-                  <text x="110" y="115" textAnchor="middle" fill="#a855f7" fontSize="7" fontWeight="bold">X</text>
+                  <text x="210" y="215" textAnchor="start" fill="#a855f7" fontSize="8" fontWeight="bold">X</text>
                   
-                  {/* Left side numbers: 0-9 (bottom to top) */}
+                  {/* Left side numbers: 0-9 (Y axis, bottom to top) */}
                   {Array.from({ length: 10 }, (_, i) => (
                     <text 
                       key={`left${i}`} 
-                      x="-8" 
-                      y={95 - i * 10} 
+                      x="-12" 
+                      y={190 - i * 20} 
                       textAnchor="middle" 
                       fill="#a855f7" 
-                      fontSize="8"
+                      fontSize="10"
                       fontWeight="bold"
                     >
                       {i}
                     </text>
                   ))}
-                  <text x="-8" y="-5" textAnchor="middle" fill="#a855f7" fontSize="7" fontWeight="bold">Y</text>
+                  <text x="-12" y="-8" textAnchor="middle" fill="#a855f7" fontSize="8" fontWeight="bold">Y</text>
                   
                   {/* Center point marker */}
-                  <circle cx="50" cy="50" r="3" fill="#a855f7" />
+                  <circle cx="100" cy="100" r="4" fill="#a855f7" />
                   
                   {/* Drag instruction */}
-                  <text x="50" y="-10" fill="#a855f7" fontSize="10" fontWeight="bold" textAnchor="middle">גרור למיקום</text>
+                  <text x="100" y="-15" fill="#a855f7" fontSize="11" fontWeight="bold" textAnchor="middle">גרור לכל מקום</text>
+                  
+                  {/* Corner markers for alignment help */}
+                  <circle cx="0" cy="0" r="3" fill="#a855f7" opacity="0.8" />
+                  <circle cx="200" cy="0" r="3" fill="#a855f7" opacity="0.8" />
+                  <circle cx="0" cy="200" r="3" fill="#a855f7" opacity="0.8" />
+                  <circle cx="200" cy="200" r="3" fill="#a855f7" opacity="0.8" />
                 </g>
               )}
             </svg>
@@ -396,8 +382,7 @@ export default function CoordinateFindingExercise() {
           </div>
         </div>
       </div>
-    
-      <Link className="flex justify-center mt-8" href="/">
+        <Link className="flex justify-center mt-8" href="/">
             <button className="px-6 py-2 rounded-lg bg-gradient-to-r from-pink-400 to-purple-500 text-white font-bold shadow hover:from-pink-500 hover:to-purple-600 transition" onClick={()=>dispatch(setCurrentExcersice(1))}>עבור  למסך הבית </button>
             </Link>
     </div>
