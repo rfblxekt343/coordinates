@@ -4,18 +4,19 @@ import { setCurrentExcersice } from '../store/excersiceSlice';
 import Link from 'next/link';
 
 export default function CoordinateFindingExercise() {
-  // Generate random target coordinate
-  const generateCoordinate = () => {
-    const x = Math.floor(Math.random() * 3) + 651; // 651-653
-    const xDecimal = Math.floor(Math.random() * 10) * 100; // 0-900
-    const y = Math.floor(Math.random() * 3) + 407; // 407-409
-    const yDecimal = Math.floor(Math.random() * 10) * 100; // 0-900
-    return {
-      x: x * 1000 + xDecimal,
-      y: y * 1000 + yDecimal,
-      display: `${x}${String(xDecimal).padStart(3, '0')}/${y}${String(yDecimal).padStart(3, '0')}`
-    };
+ // Generate coordinate only inside this visible 1x1 km grid
+const generateCoordinate = () => {
+  // X between 651000–651999, Y between 407000–407999
+  const x = 651000 + Math.floor(Math.random() * 1000); // 651000–651999
+  const y = 407000 + Math.floor(Math.random() * 1000); // 407000–407999
+
+  return {
+    x,
+    y,
+    display: `${Math.floor(x / 1000)}${String(x % 1000).padStart(3, "0")}/${Math.floor(y / 1000)}${String(y % 1000).padStart(3, "0")}`
   };
+};
+
 
   const [targetCoord, setTargetCoord] = useState(generateCoordinate());
   const [userPoint, setUserPoint] = useState(null);
