@@ -33,17 +33,22 @@ const generateCoordinate = () => {
   const [isDragging, setIsDragging] = useState(false);
 
   // Convert coordinate to pixel position
-  const coordToPixel = (coord) => {
-    const baseX = Math.floor(coord.x / 1000);
-    const decimalX = coord.x % 1000;
-    const baseY = Math.floor(coord.y / 1000);
-    const decimalY = coord.y % 1000;
-    
-    const pixelX = 100 + ((baseX - 651) * 200) + (decimalX / 1000 * 200);
-    const pixelY = 500 - ((baseY - 407) * 200) - (decimalY / 1000 * 200);
-    
-    return { x: pixelX, y: pixelY };
-  };
+const coordToPixel = (coord) => {
+  const baseX = Math.floor(coord.x / 1000);
+  const decimalX = coord.x % 1000;
+  const baseY = Math.floor(coord.y / 1000);
+  const decimalY = coord.y % 1000;
+
+  // X is left to right as before
+  const pixelX = 100 + ((baseX - 651) * 200) + (decimalX / 1000 * 200);
+
+  // Y increases downward in SVG, so we invert it carefully
+  const pixelY = 100 + ((408 - baseY) * 200) + ((1000 - decimalY) / 1000 * 200);
+
+  return { x: pixelX, y: pixelY };
+};
+
+
 
   // Check if grid is in correct square
   const isGridInCorrectSquare = () => {
