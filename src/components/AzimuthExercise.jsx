@@ -1,12 +1,35 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { setCurrentExcersice } from '../store/excersiceSlice'; // adjust path as needed
+import { setCurrentExcersice } from '../store/excersiceSlice';
+
 export default function AzimuthExercise() {
   const dispatch = useDispatch();
-  // Exercise configuration
-  const [pointA] = useState({ x: 250, y: 350, label: 'A' });
-  const [pointB] = useState({ x: 450, y: 200, label: 'B' });
+  
+  // Generate random points
+  const generatePoints = () => {
+    const pointA = {
+      x: Math.floor(Math.random() * 300) + 150, // 150-450
+      y: Math.floor(Math.random() * 200) + 250, // 250-450
+      label: 'A'
+    };
+    
+    // Ensure point B is at least 150 pixels away from point A
+    let pointB;
+    do {
+      pointB = {
+        x: Math.floor(Math.random() * 300) + 150, // 150-450
+        y: Math.floor(Math.random() * 200) + 100, // 100-300
+        label: 'B'
+      };
+    } while (Math.sqrt(Math.pow(pointB.x - pointA.x, 2) + Math.pow(pointB.y - pointA.y, 2)) < 150);
+    
+    return { pointA, pointB };
+  };
+  
+  const [points, setPoints] = useState(generatePoints());
+  const pointA = points.pointA;
+  const pointB = points.pointB;
   
   // Calculate correct azimuth
   const calculateAzimuth = (from, to) => {
@@ -86,7 +109,6 @@ export default function AzimuthExercise() {
     };
     
     if (isDraggingMadko || isDraggingThread) {
-      // Prevent body scrolling while dragging without position fixed
       const scrollY = window.scrollY;
       document.body.style.overflow = 'hidden';
       document.body.style.height = '100vh';
@@ -97,7 +119,6 @@ export default function AzimuthExercise() {
       window.addEventListener('touchend', handleEnd, { passive: false });
       
       return () => {
-        // Restore body scrolling
         document.body.style.overflow = '';
         document.body.style.height = '';
         window.scrollTo(0, scrollY);
@@ -118,8 +139,9 @@ export default function AzimuthExercise() {
     setShowResult(true);
   };
   
-  const handleReset = () => {
-    setMadkoCenter({ x: 250, y: 350 });
+  const handleNewQuestion = () => {
+    setPoints(generatePoints());
+    setMadkoCenter({ x: 150, y: 250 });
     setThreadAngle(0);
     setUserAnswer('');
     setShowResult(false);
@@ -173,16 +195,16 @@ export default function AzimuthExercise() {
               <div className="flex gap-2">
                 <button
                   onClick={handleSubmit}
-                  disabled={!userAnswer}
+                  disabled={!userAnswer || showResult}
                   className="flex-1 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold py-2 px-4 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   בדוק תשובה
                 </button>
                 <button
-                  onClick={handleReset}
+                  onClick={handleNewQuestion}
                   className="flex-1 bg-slate-700 text-white font-bold py-2 px-4 rounded-lg hover:bg-slate-600"
                 >
-                  אפס
+                  שאלה חדשה
                 </button>
               </div>
             </div>
@@ -325,8 +347,9 @@ export default function AzimuthExercise() {
         </div>
       </div>
       <div className="flex justify-center mt-8">
-
-      <button className="px-6 py-2 rounded-lg bg-gradient-to-r from-pink-400 to-purple-500 text-white font-bold shadow hover:from-pink-500 hover:to-purple-600 transition" onClick={() => dispatch(setCurrentExcersice(2))}>עבור לתרגול הבא </button>
+        <button className="px-6 py-2 rounded-lg bg-gradient-to-r from-pink-400 to-purple-500 text-white font-bold shadow hover:from-pink-500 hover:to-purple-600 transition" onClick={() => dispatch(setCurrentExcersice(2))}>
+          עבור לתרגול הבא
+        </button>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { setCurrentExcersice } from '../store/excersiceSlice';
 import Link from 'next/link';
+
 export default function CoordinateFindingExercise() {
   // Generate random target coordinate
   const generateCoordinate = () => {
@@ -19,8 +20,12 @@ export default function CoordinateFindingExercise() {
   const [targetCoord, setTargetCoord] = useState(generateCoordinate());
   const [userPoint, setUserPoint] = useState(null);
   const [gridPosition, setGridPosition] = useState({ x: 300, y: 300 });
-  const [showResult, setShowResult] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(false);
+  
+  // Two-step process
+  const [step, setStep] = useState(1); // 1 = grid placement, 2 = point placement
+  const [step1Result, setStep1Result] = useState(null); // null, 'correct', 'incorrect'
+  const [step2Result, setStep2Result] = useState(null); // null, 'correct', 'incorrect'
+  
   const [showGrid, setShowGrid] = useState(true);
   
   const svgRef = useRef(null);
@@ -39,6 +44,22 @@ export default function CoordinateFindingExercise() {
     return { x: pixelX, y: pixelY };
   };
 
+  // Check if grid is in correct square
+  const isGridInCorrectSquare = () => {
+    const baseX = Math.floor(targetCoord.x / 1000);
+    const baseY = Math.floor(targetCoord.y / 1000);
+    
+    const correctSquarePixelX = 100 + ((baseX - 651) * 200) + 100; // Center of square
+    const correctSquarePixelY = 500 - ((baseY - 407) * 200) - 100; // Center of square
+    
+    const distance = Math.sqrt(
+      Math.pow(gridPosition.x - correctSquarePixelX, 2) + 
+      Math.pow(gridPosition.y - correctSquarePixelY, 2)
+    );
+    
+    return distance < 80; // Within the square area
+  };
+
   const getSvgCoordinates = (clientX, clientY) => {
     const svg = svgRef.current;
     if (!svg) return { x: 0, y: 0 };
@@ -49,7 +70,7 @@ export default function CoordinateFindingExercise() {
   };
 
   const handleMapClick = (e) => {
-    if (showResult || isDragging) return;
+    if (step !== 2 || isDragging) return; // Only allow clicks in step 2
     
     const clientX = e.clientX || (e.touches && e.touches[0].clientX);
     const clientY = e.clientY || (e.touches && e.touches[0].clientY);
@@ -59,6 +80,7 @@ export default function CoordinateFindingExercise() {
   };
 
   const handleGridStart = (e) => {
+    if (step !== 1) return; // Only allow dragging in step 1
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
@@ -109,7 +131,19 @@ export default function CoordinateFindingExercise() {
     }
   }, [isDragging]);
 
-  const handleSubmit = () => {
+  const handleStep1Submit = () => {
+    const isCorrect = isGridInCorrectSquare();
+    setStep1Result(isCorrect ? 'correct' : 'incorrect');
+    
+    if (isCorrect) {
+      // Move to step 2 after a short delay
+      setTimeout(() => {
+        setStep(2);
+      }, 1500);
+    }
+  };
+
+  const handleStep2Submit = () => {
     if (!userPoint) return;
     
     const targetPixel = coordToPixel(targetCoord);
@@ -119,16 +153,17 @@ export default function CoordinateFindingExercise() {
       Math.pow(userPoint.y - targetPixel.y, 2)
     );
     
-    setIsCorrect(distance < 20);
-    setShowResult(true);
+    const isCorrect = distance < 20;
+    setStep2Result(isCorrect ? 'correct' : 'incorrect');
   };
 
   const handleReset = () => {
     setTargetCoord(generateCoordinate());
     setUserPoint(null);
     setGridPosition({ x: 300, y: 300 });
-    setShowResult(false);
-    setIsCorrect(false);
+    setStep(1);
+    setStep1Result(null);
+    setStep2Result(null);
     setShowGrid(true);
   };
 
@@ -141,44 +176,96 @@ export default function CoordinateFindingExercise() {
           תרגיל מציאת נקודה לפי נ.צ
         </h1>
         
+        {/* Progress indicator */}
+        <div className="mb-4 sm:mb-6 flex justify-center gap-2" dir="rtl">
+          <div className={`px-4 py-2 rounded-lg font-bold ${
+            step === 1 ? 'bg-cyan-500 text-white' : step === 2 ? 'bg-green-500 text-white' : 'bg-slate-700 text-gray-400'
+          }`}>
+            שלב 1: מיקום הרשת
+          </div>
+          <div className={`px-4 py-2 rounded-lg font-bold ${
+            step === 2 ? 'bg-cyan-500 text-white' : 'bg-slate-700 text-gray-400'
+          }`}>
+            שלב 2: סימון הנקודה
+          </div>
+        </div>
+        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Instructions */}
           <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 p-3 sm:p-4 rounded-xl">
             <h2 className="text-lg sm:text-xl font-bold text-cyan-400 mb-2 sm:mb-3">הוראות</h2>
-            <ol className="text-gray-200 space-y-1.5 sm:space-y-2 text-xs sm:text-sm" dir="rtl">
-              <li className="flex gap-2">
-                <span className="bg-cyan-500 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center flex-shrink-0 text-xs sm:text-sm">1</span>
-                <span>קרא את הנ.צ המוצג למטה</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="bg-purple-500 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center flex-shrink-0 text-xs sm:text-sm">2</span>
-                <span>מצא את הריבוע הנכון על המפה לפי 3 הספרות הראשונות</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="bg-pink-500 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center flex-shrink-0 text-xs sm:text-sm">3</span>
-                <span>גרור את רשת 3,000 לריבוע הנכון (הרשת מתאימה בדיוק לגודל הריבוע)</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="bg-emerald-500 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center flex-shrink-0 text-xs sm:text-sm">4</span>
-                <span>לחץ על המיקום המדויק על המפה</span>
-              </li>
-            </ol>
+            
+            {step === 1 && (
+              <div dir="rtl" className="space-y-3">
+                <div className="bg-cyan-900/30 border border-cyan-500/30 p-3 rounded-lg">
+                  <h3 className="text-cyan-300 font-bold mb-2">שלב 1: גרור את הרשת לריבוע הנכון</h3>
+                  <ol className="text-gray-200 space-y-1.5 text-xs sm:text-sm">
+                    <li className="flex gap-2">
+                      <span className="bg-cyan-500 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 text-xs">1</span>
+                      <span>קרא את 3 הספרות הראשונות של הנ.צ</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="bg-cyan-500 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 text-xs">2</span>
+                      <span>מצא את הריבוע המתאים על המפה</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="bg-cyan-500 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 text-xs">3</span>
+                      <span>גרור את הרשת הסגולה כך שתתאים בדיוק לריבוע</span>
+                    </li>
+                  </ol>
+                </div>
+              </div>
+            )}
+            
+            {step === 2 && (
+              <div dir="rtl" className="space-y-3">
+                <div className="bg-purple-900/30 border border-purple-500/30 p-3 rounded-lg">
+                  <h3 className="text-purple-300 font-bold mb-2">שלב 2: סמן את הנקודה המדויקת</h3>
+                  <ol className="text-gray-200 space-y-1.5 text-xs sm:text-sm">
+                    <li className="flex gap-2">
+                      <span className="bg-purple-500 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 text-xs">1</span>
+                      <span>הסתכל על 3 הספרות האחרונות של הנ.צ</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="bg-purple-500 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 text-xs">2</span>
+                      <span>השתמש ברשת כדי למצוא את המיקום המדויק</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="bg-purple-500 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 text-xs">3</span>
+                      <span>לחץ על הנקודה הנכונה על המפה</span>
+                    </li>
+                  </ol>
+                </div>
+              </div>
+            )}
             
             <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-purple-900/30 border border-purple-500/30 rounded-lg">
-              <h3 className="text-base sm:text-lg font-bold text-purple-400 mb-1 sm:mb-2 text-center">הנ.צ למציאה:</h3>
+              <h3 className="text-base sm:text-lg font-bold text-purple-400 mb-1 sm:mb-2 text-center" dir="rtl">הנ.צ למציאה:</h3>
               <p className="text-2xl sm:text-3xl font-bold text-center text-cyan-300 font-mono" dir="ltr">
                 {targetCoord.display}
               </p>
             </div>
 
             <div className="mt-3 sm:mt-4 flex gap-2">
-              <button
-                onClick={handleSubmit}
-                disabled={!userPoint || showResult}
-                className="flex-1 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold py-2 px-3 sm:px-4 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-base"
-              >
-                בדוק תשובה
-              </button>
+              {step === 1 && (
+                <button
+                  onClick={handleStep1Submit}
+                  className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold py-2 px-3 sm:px-4 rounded-lg hover:opacity-90 text-xs sm:text-base"
+                >
+                  בדוק מיקום רשת
+                </button>
+              )}
+              
+              {step === 2 && (
+                <button
+                  onClick={handleStep2Submit}
+                  disabled={!userPoint || step2Result !== null}
+                  className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-2 px-3 sm:px-4 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-base"
+                >
+                  בדוק נקודה
+                </button>
+              )}
+              
               <button
                 onClick={handleReset}
                 className="flex-1 bg-slate-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg hover:bg-slate-600 text-xs sm:text-base"
@@ -187,16 +274,40 @@ export default function CoordinateFindingExercise() {
               </button>
             </div>
             
-            {showResult && (
+            {/* Step 1 Result */}
+            {step1Result && step === 1 && (
               <div className={`mt-3 sm:mt-4 p-3 sm:p-4 rounded-lg border ${
-                isCorrect 
+                step1Result === 'correct'
                   ? 'bg-green-900/30 border-green-500/30' 
                   : 'bg-red-900/30 border-red-500/30'
               }`}>
-                <p className={`font-bold text-base sm:text-lg ${isCorrect ? 'text-green-400' : 'text-red-400'}`} dir="rtl">
-                  {isCorrect ? '✓ מצוין! מצאת את הנקודה הנכונה!' : '✗ לא מדויק מספיק'}
+                <p className={`font-bold text-base sm:text-lg ${step1Result === 'correct' ? 'text-green-400' : 'text-red-400'}`} dir="rtl">
+                  {step1Result === 'correct' ? '✓ מצוין! הרשת ממוקמת בריבוע הנכון!' : '✗ הרשת לא בריבוע הנכון'}
                 </p>
-                {!isCorrect && (
+                {step1Result === 'correct' && (
+                  <p className="text-green-300 text-xs sm:text-sm mt-2" dir="rtl">
+                    עובר לשלב 2...
+                  </p>
+                )}
+                {step1Result === 'incorrect' && (
+                  <p className="text-yellow-300 text-xs sm:text-sm mt-2" dir="rtl">
+                    בדוק שוב את 3 הספרות הראשונות של הנ.צ
+                  </p>
+                )}
+              </div>
+            )}
+            
+            {/* Step 2 Result */}
+            {step2Result && step === 2 && (
+              <div className={`mt-3 sm:mt-4 p-3 sm:p-4 rounded-lg border ${
+                step2Result === 'correct'
+                  ? 'bg-green-900/30 border-green-500/30' 
+                  : 'bg-red-900/30 border-red-500/30'
+              }`}>
+                <p className={`font-bold text-base sm:text-lg ${step2Result === 'correct' ? 'text-green-400' : 'text-red-400'}`} dir="rtl">
+                  {step2Result === 'correct' ? '✓ מצוין! מצאת את הנקודה הנכונה!' : '✗ לא מדויק מספיק'}
+                </p>
+                {step2Result === 'incorrect' && (
                   <div className="mt-2 sm:mt-3" dir="rtl">
                     <p className="text-yellow-300 text-xs sm:text-sm mb-1 sm:mb-2">הנקודה הנכונה מסומנת בירוק</p>
                     <p className="text-gray-300 text-xs sm:text-sm">
@@ -215,7 +326,9 @@ export default function CoordinateFindingExercise() {
             <svg
               ref={svgRef}
               viewBox="0 0 700 600"
-              className="w-full h-auto border-2 border-purple-500/30 rounded-lg bg-gradient-to-br from-green-900/20 to-yellow-900/20 cursor-crosshair touch-none"
+              className={`w-full h-auto border-2 border-purple-500/30 rounded-lg bg-gradient-to-br from-green-900/20 to-yellow-900/20 touch-none ${
+                step === 2 ? 'cursor-crosshair' : 'cursor-default'
+              }`}
               onClick={handleMapClick}
               onTouchStart={handleMapClick}
               style={{ touchAction: 'none', maxHeight: '70vh' }}
@@ -241,8 +354,8 @@ export default function CoordinateFindingExercise() {
               <text x="80" y="205" fill="#c084fc" fontSize="14" fontWeight="bold" textAnchor="middle">408</text>
               <text x="80" y="405" fill="#c084fc" fontSize="14" fontWeight="bold" textAnchor="middle">407</text>
               
-              {/* User's marked point */}
-              {userPoint && (
+              {/* User's marked point (only in step 2) */}
+              {step === 2 && userPoint && (
                 <circle 
                   cx={userPoint.x} 
                   cy={userPoint.y} 
@@ -254,8 +367,8 @@ export default function CoordinateFindingExercise() {
                 />
               )}
               
-              {/* Show correct answer after submission */}
-              {showResult && !isCorrect && userPoint && (
+              {/* Show correct answer after step 2 submission */}
+              {step === 2 && step2Result === 'incorrect' && userPoint && (
                 <>
                   <circle 
                     cx={targetPixel.x} 
@@ -277,11 +390,15 @@ export default function CoordinateFindingExercise() {
                 </>
               )}
               
-              {/* 3000 Grid overlay - FREE DRAGGING */}
-              {showGrid && !showResult && (
+              {/* 3000 Grid overlay */}
+              {showGrid && (
                 <g
                   transform={`translate(${gridPosition.x - 100}, ${gridPosition.y - 100})`}
-                  style={{ cursor: isDragging ? 'grabbing' : 'grab', touchAction: 'none' }}
+                  style={{ 
+                    cursor: step === 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
+                    touchAction: 'none',
+                    opacity: step === 2 ? 0.5 : 1
+                  }}
                   onMouseDown={handleGridStart}
                   onTouchStart={handleGridStart}
                 >
@@ -359,8 +476,10 @@ export default function CoordinateFindingExercise() {
                   {/* Center point marker */}
                   <circle cx="100" cy="100" r="4" fill="#a855f7" />
                   
-                  {/* Drag instruction */}
-                  <text x="100" y="-15" fill="#a855f7" fontSize="11" fontWeight="bold" textAnchor="middle">גרור לכל מקום</text>
+                  {/* Drag instruction (only in step 1) */}
+                  {step === 1 && (
+                    <text x="100" y="-15" fill="#a855f7" fontSize="11" fontWeight="bold" textAnchor="middle">גרור לריבוע הנכון</text>
+                  )}
                   
                   {/* Corner markers for alignment help */}
                   <circle cx="0" cy="0" r="3" fill="#a855f7" opacity="0.8" />
@@ -382,9 +501,11 @@ export default function CoordinateFindingExercise() {
           </div>
         </div>
       </div>
-        <Link className="flex justify-center mt-8" href="/">
-            <button className="px-6 py-2 rounded-lg bg-gradient-to-r from-pink-400 to-purple-500 text-white font-bold shadow hover:from-pink-500 hover:to-purple-600 transition" onClick={()=>dispatch(setCurrentExcersice(1))}>עבור  למסך הבית </button>
-            </Link>
+      <Link className="flex justify-center mt-8" href="/">
+        <button className="px-6 py-2 rounded-lg bg-gradient-to-r from-pink-400 to-purple-500 text-white font-bold shadow hover:from-pink-500 hover:to-purple-600 transition" onClick={()=>dispatch(setCurrentExcersice(1))}>
+          עבור למסך הבית
+        </button>
+      </Link>
     </div>
   );
 }
