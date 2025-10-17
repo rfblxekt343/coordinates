@@ -13,3 +13,4 @@ const excersiceSlice = createSlice({
 
 export const { setCurrentExcersice } = excersiceSlice.actions;
 export default excersiceSlice.reducer;
+

@@ -1,31 +1,31 @@
+"use client";
 import { useState, useRef, useEffect } from 'react';
+
+
 import { useDispatch } from 'react-redux';
 import { setCurrentExcersice } from '../store/excersiceSlice';
 import Link from 'next/link';
-
 export default function CoordinateFindingExercise() {
- // Generate coordinate only inside this visible 1x1 km grid
-const generateCoordinate = () => {
-  // X between 651000–651999, Y between 407000–407999
-  const x = 651000 + Math.floor(Math.random() * 1000); // 651000–651999
-  const y = 407000 + Math.floor(Math.random() * 1000); // 407000–407999
+  const dispatch = useDispatch();
+   const generateCoordinate = () => {
+    // X between 651000–651999, Y between 407000–407999
+    const x = 651000 + Math.floor(Math.random() * 1000);
+    const y = 407000 + Math.floor(Math.random() * 1000);
 
-  return {
-    x,
-    y,
-    display: `${Math.floor(x / 1000)}${String(x % 1000).padStart(3, "0")}/${Math.floor(y / 1000)}${String(y % 1000).padStart(3, "0")}`
+    return {
+      x,
+      y,
+      display: `${Math.floor(x / 1000)}${String(x % 1000).padStart(3, "0")}/${Math.floor(y / 1000)}${String(y % 1000).padStart(3, "0")}`
+    };
   };
-};
-
 
   const [targetCoord, setTargetCoord] = useState(generateCoordinate());
   const [userPoint, setUserPoint] = useState(null);
   const [gridPosition, setGridPosition] = useState({ x: 300, y: 300 });
   
-  // Two-step process
-  const [step, setStep] = useState(1); // 1 = grid placement, 2 = point placement
-  const [step1Result, setStep1Result] = useState(null); // null, 'correct', 'incorrect'
-  const [step2Result, setStep2Result] = useState(null); // null, 'correct', 'incorrect'
+  const [step, setStep] = useState(1);
+  const [step1Result, setStep1Result] = useState(null);
+  const [step2Result, setStep2Result] = useState(null);
   
   const [showGrid, setShowGrid] = useState(true);
   
@@ -33,37 +33,43 @@ const generateCoordinate = () => {
   const [isDragging, setIsDragging] = useState(false);
 
   // Convert coordinate to pixel position
-const coordToPixel = (coord) => {
-  const baseX = Math.floor(coord.x / 1000);
-  const decimalX = coord.x % 1000;
-  const baseY = Math.floor(coord.y / 1000);
-  const decimalY = coord.y % 1000;
+  const coordToPixel = (coord) => {
+    const baseX = Math.floor(coord.x / 1000);
+    const decimalX = coord.x % 1000;
+    const baseY = Math.floor(coord.y / 1000);
+    const decimalY = coord.y % 1000;
 
-  // X is left to right as before
-  const pixelX = 100 + ((baseX - 651) * 200) + (decimalX / 1000 * 200);
+    const pixelX = 100 + ((baseX - 651) * 200) + (decimalX / 1000 * 200);
+    const pixelY = 100 + ((408 - baseY) * 200) + ((1000 - decimalY) / 1000 * 200);
 
-  // Y increases downward in SVG, so we invert it carefully
-  const pixelY = 100 + ((408 - baseY) * 200) + ((1000 - decimalY) / 1000 * 200);
-
-  return { x: pixelX, y: pixelY };
-};
-
-
+    return { x: pixelX, y: pixelY };
+  };
 
   // Check if grid is in correct square
   const isGridInCorrectSquare = () => {
     const baseX = Math.floor(targetCoord.x / 1000);
     const baseY = Math.floor(targetCoord.y / 1000);
     
-    const correctSquarePixelX = 100 + ((baseX - 651) * 200) + 100; // Center of square
-    const correctSquarePixelY = 500 - ((baseY - 407) * 200) - 100; // Center of square
+    // Calculate the center of the correct square
+    const squareLeft = 100 + ((baseX - 651) * 200);
+    const squareTop = 100 + ((408 - baseY) * 200);
+    const squareCenterX = squareLeft + 100;
+    const squareCenterY = squareTop + 100;
     
-    const distance = Math.sqrt(
-      Math.pow(gridPosition.x - correctSquarePixelX, 2) + 
-      Math.pow(gridPosition.y - correctSquarePixelY, 2)
+    // Check if the target point is inside the purple grid boundaries
+    // Grid is 200x200, positioned at gridPosition (which is its center)
+    const gridLeft = gridPosition.x - 100;
+    const gridRight = gridPosition.x + 100;
+    const gridTop = gridPosition.y - 100;
+    const gridBottom = gridPosition.y + 100;
+    
+    // Check if square center is within the grid bounds
+    return (
+      squareCenterX >= gridLeft &&
+      squareCenterX <= gridRight &&
+      squareCenterY >= gridTop &&
+      squareCenterY <= gridBottom
     );
-    
-    return distance < 80; // Within the square area
   };
 
   const getSvgCoordinates = (clientX, clientY) => {
@@ -76,7 +82,7 @@ const coordToPixel = (coord) => {
   };
 
   const handleMapClick = (e) => {
-    if (step !== 2 || isDragging) return; // Only allow clicks in step 2
+    if (step !== 2 || isDragging) return;
     
     const clientX = e.clientX || (e.touches && e.touches[0].clientX);
     const clientY = e.clientY || (e.touches && e.touches[0].clientY);
@@ -86,7 +92,7 @@ const coordToPixel = (coord) => {
   };
 
   const handleGridStart = (e) => {
-    if (step !== 1) return; // Only allow dragging in step 1
+    if (step !== 1) return;
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
@@ -95,7 +101,6 @@ const coordToPixel = (coord) => {
   useEffect(() => {
     const handleMove = (e) => {
       if (!isDragging) return;
-
       e.preventDefault();
       
       const clientX = e.clientX || (e.touches && e.touches[0].clientX);
@@ -142,7 +147,6 @@ const coordToPixel = (coord) => {
     setStep1Result(isCorrect ? 'correct' : 'incorrect');
     
     if (isCorrect) {
-      // Move to step 2 after a short delay
       setTimeout(() => {
         setStep(2);
       }, 1500);
@@ -182,7 +186,6 @@ const coordToPixel = (coord) => {
           תרגיל מציאת נקודה לפי נ.צ
         </h1>
         
-        {/* Progress indicator */}
         <div className="mb-4 sm:mb-6 flex justify-center gap-2" dir="rtl">
           <div className={`px-4 py-2 rounded-lg font-bold ${
             step === 1 ? 'bg-cyan-500 text-white' : step === 2 ? 'bg-green-500 text-white' : 'bg-slate-700 text-gray-400'
@@ -197,7 +200,6 @@ const coordToPixel = (coord) => {
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-          {/* Instructions */}
           <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 p-3 sm:p-4 rounded-xl">
             <h2 className="text-lg sm:text-xl font-bold text-cyan-400 mb-2 sm:mb-3">הוראות</h2>
             
@@ -280,7 +282,6 @@ const coordToPixel = (coord) => {
               </button>
             </div>
             
-            {/* Step 1 Result */}
             {step1Result && step === 1 && (
               <div className={`mt-3 sm:mt-4 p-3 sm:p-4 rounded-lg border ${
                 step1Result === 'correct'
@@ -303,7 +304,6 @@ const coordToPixel = (coord) => {
               </div>
             )}
             
-            {/* Step 2 Result */}
             {step2Result && step === 2 && (
               <div className={`mt-3 sm:mt-4 p-3 sm:p-4 rounded-lg border ${
                 step2Result === 'correct'
@@ -325,7 +325,6 @@ const coordToPixel = (coord) => {
             )}
           </div>
           
-          {/* Map with Grid */}
           <div className="lg:col-span-2 bg-black/40 backdrop-blur-sm border border-purple-500/30 p-3 sm:p-4 rounded-xl">
             <h2 className="text-lg sm:text-xl font-bold text-purple-400 mb-2 sm:mb-3 text-center">מפה טופוגרפית 1:50,000</h2>
             
@@ -339,7 +338,6 @@ const coordToPixel = (coord) => {
               onTouchStart={handleMapClick}
               style={{ touchAction: 'none', maxHeight: '70vh' }}
             >
-              {/* Grid - 1km squares */}
               <defs>
                 <pattern id="smallGrid" width="20" height="20" patternUnits="userSpaceOnUse">
                   <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#22d3ee" strokeWidth="0.5" opacity="0.3" />
@@ -352,7 +350,6 @@ const coordToPixel = (coord) => {
               
               <rect x="100" y="100" width="600" height="400" fill="url(#grid)" />
               
-              {/* Grid labels */}
               <text x="200" y="90" fill="#67e8f9" fontSize="14" fontWeight="bold" textAnchor="middle">651</text>
               <text x="400" y="90" fill="#67e8f9" fontSize="14" fontWeight="bold" textAnchor="middle">652</text>
               <text x="600" y="90" fill="#67e8f9" fontSize="14" fontWeight="bold" textAnchor="middle">653</text>
@@ -360,7 +357,6 @@ const coordToPixel = (coord) => {
               <text x="80" y="205" fill="#c084fc" fontSize="14" fontWeight="bold" textAnchor="middle">408</text>
               <text x="80" y="405" fill="#c084fc" fontSize="14" fontWeight="bold" textAnchor="middle">407</text>
               
-              {/* User's marked point (only in step 2) */}
               {step === 2 && userPoint && (
                 <circle 
                   cx={userPoint.x} 
@@ -373,7 +369,6 @@ const coordToPixel = (coord) => {
                 />
               )}
               
-              {/* Show correct answer after step 2 submission */}
               {step === 2 && step2Result === 'incorrect' && userPoint && (
                 <>
                   <circle 
@@ -396,7 +391,6 @@ const coordToPixel = (coord) => {
                 </>
               )}
               
-              {/* 3000 Grid overlay */}
               {showGrid && (
                 <g
                   transform={`translate(${gridPosition.x - 100}, ${gridPosition.y - 100})`}
@@ -408,7 +402,6 @@ const coordToPixel = (coord) => {
                   onMouseDown={handleGridStart}
                   onTouchStart={handleGridStart}
                 >
-                  {/* Background rectangle - 200x200 to match 1km square */}
                   <rect 
                     x="0" 
                     y="0" 
@@ -419,7 +412,6 @@ const coordToPixel = (coord) => {
                     strokeWidth="3"
                   />
                   
-                  {/* Vertical grid lines - 10 divisions (each 20px = 100m) */}
                   {Array.from({ length: 11 }, (_, i) => (
                     <line 
                       key={`v${i}`} 
@@ -433,7 +425,6 @@ const coordToPixel = (coord) => {
                     />
                   ))}
                   
-                  {/* Horizontal grid lines - 10 divisions (each 20px = 100m) */}
                   {Array.from({ length: 11 }, (_, i) => (
                     <line 
                       key={`h${i}`} 
@@ -447,7 +438,6 @@ const coordToPixel = (coord) => {
                     />
                   ))}
                   
-                  {/* Bottom numbers: 0-9 (X axis) */}
                   {Array.from({ length: 10 }, (_, i) => (
                     <text 
                       key={`bottom${i}`} 
@@ -463,7 +453,6 @@ const coordToPixel = (coord) => {
                   ))}
                   <text x="210" y="215" textAnchor="start" fill="#a855f7" fontSize="8" fontWeight="bold">X</text>
                   
-                  {/* Left side numbers: 0-9 (Y axis, bottom to top) */}
                   {Array.from({ length: 10 }, (_, i) => (
                     <text 
                       key={`left${i}`} 
@@ -479,15 +468,12 @@ const coordToPixel = (coord) => {
                   ))}
                   <text x="-12" y="-8" textAnchor="middle" fill="#a855f7" fontSize="8" fontWeight="bold">Y</text>
                   
-                  {/* Center point marker */}
                   <circle cx="100" cy="100" r="4" fill="#a855f7" />
                   
-                  {/* Drag instruction (only in step 1) */}
                   {step === 1 && (
                     <text x="100" y="-15" fill="#a855f7" fontSize="11" fontWeight="bold" textAnchor="middle">גרור לריבוע הנכון</text>
                   )}
                   
-                  {/* Corner markers for alignment help */}
                   <circle cx="0" cy="0" r="3" fill="#a855f7" opacity="0.8" />
                   <circle cx="200" cy="0" r="3" fill="#a855f7" opacity="0.8" />
                   <circle cx="0" cy="200" r="3" fill="#a855f7" opacity="0.8" />
@@ -508,7 +494,7 @@ const coordToPixel = (coord) => {
         </div>
       </div>
       <Link className="flex justify-center mt-8" href="/">
-        <button className="px-6 py-2 rounded-lg bg-gradient-to-r from-pink-400 to-purple-500 text-white font-bold shadow hover:from-pink-500 hover:to-purple-600 transition" onClick={()=>dispatch(setCurrentExcersice(1))}>
+        <button className="px-6 py-2 rounded-lg bg-gradient-to-r from-pink-400 to-purple-500 text-white font-bold shadow hover:from-pink-500 hover:to-purple-600 transition" onClick={() => dispatch(setCurrentExcersice(1))}>
           עבור למסך הבית
         </button>
       </Link>
