@@ -171,7 +171,7 @@ export default function Explanation4() {
 
 
             {/* Visual Step-by-Step Guide */}
-            <div className="bg-black/30 backdrop-blur-sm border border-purple-500/30 p-4 sm:p-6 rounded-2xl shadow-lg mb-6">
+            <div className=" text-white bg-black/30 backdrop-blur-sm border border-purple-500/30 p-4 sm:p-6 rounded-2xl shadow-lg mb-6">
                 <h2 className="text-xl sm:text-2xl font-bold mb-4 text-center text-pink-400">סדר פעולות מציאת כיוון</h2>
                 1- נצפין את המדקו ביחס למפה
                 <br />
@@ -184,7 +184,7 @@ export default function Explanation4() {
             </div>
             <div className="bg-black/30 backdrop-blur-sm border border-purple-500/30 p-4 sm:p-6 rounded-2xl shadow-lg mb-6">
                 <h2 className="text-xl sm:text-2xl font-bold mb-4 text-center text-pink-400">אומדן טווח</h2>
-                <p>
+                <p className="text-white">
                     למדקו יש מספר סרגלים למדידת טווח המשתנים בהתאם לקנה מידה.
                     <br />
                     אנו נשתמש בסרגל 1:50,000 זהו קנה המידה של המפה שאנו משתמשים
