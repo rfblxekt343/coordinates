@@ -5,21 +5,46 @@ import { useState, useRef, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { setCurrentExcersice } from '../store/excersiceSlice';
 import Link from 'next/link';
+
+const COLS = 3;
+const ROWS = 2;
+const BASE_X_MIN = 600;
+const BASE_X_MAX = 699;
+const BASE_Y_MIN = 390;
+const BASE_Y_MAX = 420;
+
 export default function CoordinateFindingExercise() {
   const dispatch = useDispatch();
-   const generateCoordinate = () => {
-    // X between 651000–651999, Y between 407000–407999
-    const x = 651000 + Math.floor(Math.random() * 1000);
-    const y = 407000 + Math.floor(Math.random() * 1000);
+
+  const generateCoordinate = () => {
+    // pick a starting base so the visible window (COLS x ROWS) fits inside allowed range
+    const minBaseX = Math.floor(Math.random() * (BASE_X_MAX - BASE_X_MIN - (COLS - 1) + 1)) + BASE_X_MIN;
+    const minBaseY = Math.floor(Math.random() * (BASE_Y_MAX - BASE_Y_MIN - (ROWS - 1) + 1)) + BASE_Y_MIN;
+
+    // pick a base cell inside the visible window
+    const baseX = minBaseX + Math.floor(Math.random() * COLS); // one of the visible columns
+    const baseY = minBaseY + Math.floor(Math.random() * ROWS); // one of the visible rows
+
+    const decimalX = Math.floor(Math.random() * 1000); // 0-999
+    const decimalY = Math.floor(Math.random() * 1000);
+
+    const x = baseX * 1000 + decimalX;
+    const y = baseY * 1000 + decimalY;
 
     return {
       x,
       y,
-      display: `${Math.floor(x / 1000)}${String(x % 1000).padStart(3, "0")}/${Math.floor(y / 1000)}${String(y % 1000).padStart(3, "0")}`
+      display: `${String(baseX).padStart(3, "0")}${String(decimalX).padStart(3, "0")}/${String(baseY).padStart(3, "0")}${String(decimalY).padStart(3, "0")}`,
+      minBaseX,
+      minBaseY
     };
   };
 
-  const [targetCoord, setTargetCoord] = useState(generateCoordinate());
+  const initial = generateCoordinate();
+
+  const [targetCoord, setTargetCoord] = useState(initial);
+  const [minBaseX, setMinBaseX] = useState(initial.minBaseX);
+  const [minBaseY, setMinBaseY] = useState(initial.minBaseY);
   const [userPoint, setUserPoint] = useState(null);
   const [gridPosition, setGridPosition] = useState({ x: 300, y: 300 });
   
@@ -39,31 +64,34 @@ export default function CoordinateFindingExercise() {
     const baseY = Math.floor(coord.y / 1000);
     const decimalY = coord.y % 1000;
 
-    const pixelX = 100 + ((baseX - 651) * 200) + (decimalX / 1000 * 200);
-    const pixelY = 100 + ((408 - baseY) * 200) + ((1000 - decimalY) / 1000 * 200);
+    // X position: offset from current minBaseX
+    const pixelX = 100 + ((baseX - minBaseX) * 200) + (decimalX / 1000 * 200);
+
+    // Y position: top base is minBaseY + ROWS - 1
+    const topBaseY = minBaseY + ROWS - 1;
+    const pixelY = 100 + ((topBaseY - baseY) * 200) + ((1000 - decimalY) / 1000 * 200);
 
     return { x: pixelX, y: pixelY };
   };
 
-  // Check if grid is in correct square
+  // Check if grid is in correct square (uses minBase states)
   const isGridInCorrectSquare = () => {
     const baseX = Math.floor(targetCoord.x / 1000);
     const baseY = Math.floor(targetCoord.y / 1000);
     
-    // Calculate the center of the correct square
-    const squareLeft = 100 + ((baseX - 651) * 200);
-    const squareTop = 100 + ((408 - baseY) * 200);
+    // Calculate the center of the correct square relative to minBaseX/minBaseY
+    const squareLeft = 100 + ((baseX - minBaseX) * 200);
+    const topBaseY = minBaseY + ROWS - 1;
+    const squareTop = 100 + ((topBaseY - baseY) * 200);
     const squareCenterX = squareLeft + 100;
     const squareCenterY = squareTop + 100;
     
-    // Check if the target point is inside the purple grid boundaries
-    // Grid is 200x200, positioned at gridPosition (which is its center)
+    // Grid bounds (gridPosition is center)
     const gridLeft = gridPosition.x - 100;
     const gridRight = gridPosition.x + 100;
     const gridTop = gridPosition.y - 100;
     const gridBottom = gridPosition.y + 100;
     
-    // Check if square center is within the grid bounds
     return (
       squareCenterX >= gridLeft &&
       squareCenterX <= gridRight &&
@@ -168,7 +196,10 @@ export default function CoordinateFindingExercise() {
   };
 
   const handleReset = () => {
-    setTargetCoord(generateCoordinate());
+    const next = generateCoordinate();
+    setTargetCoord(next);
+    setMinBaseX(next.minBaseX);
+    setMinBaseY(next.minBaseY);
     setUserPoint(null);
     setGridPosition({ x: 300, y: 300 });
     setStep(1);
@@ -350,12 +381,22 @@ export default function CoordinateFindingExercise() {
               
               <rect x="100" y="100" width="600" height="400" fill="url(#grid)" />
               
-              <text x="200" y="90" fill="#67e8f9" fontSize="14" fontWeight="bold" textAnchor="middle">651</text>
-              <text x="400" y="90" fill="#67e8f9" fontSize="14" fontWeight="bold" textAnchor="middle">652</text>
-              <text x="600" y="90" fill="#67e8f9" fontSize="14" fontWeight="bold" textAnchor="middle">653</text>
+              {/* X labels (columns) */}
+              {Array.from({ length: COLS }, (_, i) => (
+                <text key={`xLabel${i}`} x={100 + i * 200 + 100} y="90" fill="#67e8f9" fontSize="14" fontWeight="bold" textAnchor="middle">
+                  {minBaseX + i}
+                </text>
+              ))}
               
-              <text x="80" y="205" fill="#c084fc" fontSize="14" fontWeight="bold" textAnchor="middle">408</text>
-              <text x="80" y="405" fill="#c084fc" fontSize="14" fontWeight="bold" textAnchor="middle">407</text>
+              {/* Y labels (rows) - top to bottom: maxBaseY .. minBaseY */}
+              {(() => {
+                const maxBaseY = minBaseY + ROWS - 1;
+                return Array.from({ length: ROWS }, (_, i) => (
+                  <text key={`yLabel${i}`} x="80" y={100 + i * 200 + 100} fill="#c084fc" fontSize="14" fontWeight="bold" textAnchor="middle">
+                    {maxBaseY - i}
+                  </text>
+                ));
+              })()}
               
               {step === 2 && userPoint && (
                 <circle 
